@@ -9,7 +9,20 @@ class NegotiationEngine:
     
     def __init__(self, product_config: dict):
         self.product = product_config
-        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        # Check if OpenAI API key is set
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "OPENAI_API_KEY environment variable is not set!\n"
+                "Please set it in Railway dashboard:\n"
+                "1. Go to your service in Railway\n"
+                "2. Click 'Variables' tab\n"
+                "3. Add OPENAI_API_KEY with your OpenAI API key\n"
+                "Get your key from: https://platform.openai.com/api-keys"
+            )
+        
+        self.client = AsyncOpenAI(api_key=api_key)
         
     def extract_price_from_message(self, message: str) -> Optional[float]:
         """Extract price offer from user message"""

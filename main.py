@@ -651,40 +651,6 @@ async def chat(message: ChatMessage):
     finally:
         db.close()
 
-@app.get("/api/sessions/{session_id}", response_model=ConversationHistory)
-async def get_session(session_id: str):
-    """Get conversation history for a session"""
-    db = next(get_db())
-    
-    try:
-        session = db.query(ChatSession).filter(
-            ChatSession.session_id == session_id
-        ).first()
-        
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
-        
-        messages = db.query(ConversationMessage).filter(
-            ConversationMessage.session_id == session.id
-        ).order_by(ConversationMessage.timestamp).all()
-        
-        return ConversationHistory(
-            session_id=session.session_id,
-            messages=[
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                    "timestamp": msg.timestamp.isoformat()
-                }
-                for msg in messages
-            ],
-            created_at=session.created_at,
-            deal_closed=session.deal_closed,
-            final_price=session.final_price
-        )
-    finally:
-        db.close()
-
 @app.get("/api/waitlist/count")
 async def waitlist_count():
     """Get total waitlist signups"""
@@ -769,6 +735,40 @@ async def get_all_waitlist():
             }
             for entry in entries
         ]
+    finally:
+        db.close()
+
+@app.get("/api/sessions/{session_id}", response_model=ConversationHistory)
+async def get_session(session_id: str):
+    """Get conversation history for a session"""
+    db = next(get_db())
+    
+    try:
+        session = db.query(ChatSession).filter(
+            ChatSession.session_id == session_id
+        ).first()
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        messages = db.query(ConversationMessage).filter(
+            ConversationMessage.session_id == session.id
+        ).order_by(ConversationMessage.timestamp).all()
+        
+        return ConversationHistory(
+            session_id=session.session_id,
+            messages=[
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                    "timestamp": msg.timestamp.isoformat()
+                }
+                for msg in messages
+            ],
+            created_at=session.created_at,
+            deal_closed=session.deal_closed,
+            final_price=session.final_price
+        )
     finally:
         db.close()
 
