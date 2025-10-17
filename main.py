@@ -626,14 +626,26 @@ async def chat(message: ChatMessage):
         )
         db.add(ai_msg)
         
-        # Update session
+        # Update session with HARD FLOOR ENFORCEMENT
+        ABSOLUTE_MINIMUM = 350.0  # NEVER go below this price
+        
         if result["deal_closed"]:
-            session.deal_closed = True
-            session.final_price = result["final_price"]
-            session.discount_percentage = result.get("discount_percentage")
-            session.ended_at = datetime.utcnow()
+            # FINAL SAFETY CHECK: Ensure final price is never below 350
+            final_price = result["final_price"]
+            if final_price < ABSOLUTE_MINIMUM:
+                # REJECT - Don't close the deal if price is below floor
+                session.deal_closed = False
+                result["deal_closed"] = False
+                result["message"] = f"Sorry, I can't close at that price. My absolute lowest is {ABSOLUTE_MINIMUM + 10} GHS for this quality product. Can you work with that?"
+            else:
+                session.deal_closed = True
+                session.final_price = final_price
+                session.discount_percentage = result.get("discount_percentage")
+                session.ended_at = datetime.utcnow()
         elif result.get("new_price"):
-            session.current_price = result["new_price"]
+            # Ensure new price never goes below floor
+            new_price = max(result["new_price"], ABSOLUTE_MINIMUM)
+            session.current_price = new_price
         
         db.commit()
         
