@@ -176,22 +176,22 @@ Examples:
         
         # Handle when they ASK for an offer from us
         if asking_for_offer and not offered_price:
-            # Calculate strategic offer based on conversation stage
+            # Calculate strategic offer based on conversation stage - MORE FLEXIBLE
             if message_count == 0:
-                # First time asking - drop small amount
-                counter_offer = max(current_price - 20, ABSOLUTE_MINIMUM + 30)
+                # First time asking - give a good drop to show willingness
+                counter_offer = max(current_price - 35, ABSOLUTE_MINIMUM + 25)
                 pricing_instruction = f"They're asking for YOUR offer. Give them {counter_offer} GHS. Make it sound like a special deal just for them. Add some urgency or value."
             elif message_count < 3:
-                # Early stage - be strategic
-                counter_offer = max(current_price - 30, ABSOLUTE_MINIMUM + 20)
+                # Early stage - be more generous
+                counter_offer = max(current_price - 45, ABSOLUTE_MINIMUM + 15)
                 pricing_instruction = f"They want your best offer. Counter with {counter_offer} GHS. Mention it's a limited-time deal or add a bonus (free delivery/warranty extension)."
             elif message_count < 5:
-                # Mid stage - getting more flexible
-                counter_offer = max(current_price - 40, ABSOLUTE_MINIMUM + 15)
+                # Mid stage - very flexible
+                counter_offer = max(current_price - 50, ABSOLUTE_MINIMUM + 10)
                 pricing_instruction = f"They're asking for your offer. Give {counter_offer} GHS as your 'final' offer. Make it compelling - mention another buyer or time sensitivity."
             else:
                 # Late stage - best offer
-                counter_offer = max(ABSOLUTE_MINIMUM + 10, ABSOLUTE_MINIMUM)
+                counter_offer = max(ABSOLUTE_MINIMUM + 5, ABSOLUTE_MINIMUM)
                 pricing_instruction = f"Give your rock-bottom offer: {counter_offer} GHS. This is your absolute final price. Make it clear this is the best you can do."
         
         elif offered_price:
@@ -201,8 +201,8 @@ Examples:
             # ENFORCEMENT: Reject anything below ABSOLUTE_MINIMUM
             if offered_price < ABSOLUTE_MINIMUM:
                 # Below 350 - HARD REJECTION, make them come up significantly
-                pricing_instruction = f"They offered {offered_price} GHS (way too low!). This is quality merchandise. Politely but firmly say you can't work with that price. Emphasize value and suggest they need to come up SIGNIFICANTLY. STAY at {current_price} GHS. DO NOT drop your price at all."
-                counter_offer = current_price
+                pricing_instruction = f"They offered {offered_price} GHS (way too low!). This is quality merchandise. Politely but firmly say you can't work with that price. Emphasize value and suggest they need to come up significantly. Counter with {ABSOLUTE_MINIMUM + 15} GHS."
+                counter_offer = max(ABSOLUTE_MINIMUM + 15, current_price - 40)
             
             # Check if offer is absurdly low (not serious)
             elif offered_price < 100:
@@ -216,58 +216,58 @@ Examples:
                 counter_offer = current_price
             
             elif gap > 100:
-                # Way too far - STAY FIRM at current price
-                pricing_instruction = f"They offered {offered_price} GHS but you're at {current_price} GHS (gap too big!). STAY FIRM at {current_price} GHS. Explain why it's worth it (quality, warranty, original). DON'T drop price yet!"
-                counter_offer = current_price
+                # Way too far - but still drop a bit to show flexibility
+                counter_offer = max(current_price - 30, ABSOLUTE_MINIMUM + 25)
+                pricing_instruction = f"They offered {offered_price} GHS but you're at {current_price} GHS (gap too big!). Drop to {counter_offer} GHS to show you're willing to negotiate. Explain why it's worth it (quality, warranty, original)."
             
             elif message_count == 0:
-                # FIRST COUNTER - Drop small amount ONLY, but NEVER below ABSOLUTE_MINIMUM
+                # FIRST COUNTER - Be more generous to engage them
                 if gap > 50:
-                    # Still far apart - drop 20 GHS max
-                    counter_offer = max(current_price - 20, ABSOLUTE_MINIMUM + 30)
-                    pricing_instruction = f"First offer: {offered_price} GHS. Counter with {counter_offer} GHS. Make them work for it!"
+                    # Still far apart - drop more generously
+                    counter_offer = max(current_price - 40, ABSOLUTE_MINIMUM + 20)
+                    pricing_instruction = f"First offer: {offered_price} GHS. Counter with {counter_offer} GHS to show you're flexible and serious!"
                 elif gap > 30:
-                    # Getting closer - but still resist
-                    counter_offer = max(current_price - 10, ABSOLUTE_MINIMUM + 20)
-                    pricing_instruction = f"They offered {offered_price} GHS (decent). Counter {counter_offer} GHS. Be playful but firm."
+                    # Getting closer - drop moderately
+                    counter_offer = max(current_price - 25, ABSOLUTE_MINIMUM + 15)
+                    pricing_instruction = f"They offered {offered_price} GHS (decent). Counter {counter_offer} GHS. Be playful but flexible."
                 else:
-                    # Very close - add 10-15 back, but check floor
-                    counter_offer = max(min(offered_price + 12, current_price), ABSOLUTE_MINIMUM)
+                    # Very close - add 5-8 back, but check floor
+                    counter_offer = max(min(offered_price + 8, current_price), ABSOLUTE_MINIMUM)
                     pricing_instruction = f"They offered {offered_price} GHS (close!). Counter {counter_offer} GHS. 'Nice try! How about {counter_offer}?'"
             
             elif message_count == 1 or message_count == 2:
-                # Messages 2-3: STAY FIRM first, then small drop (NEVER below floor)
-                if offered_price < current_price - 20:
-                    # They're still low - HOLD your price, add value
-                    pricing_instruction = f"They're at {offered_price} GHS, you're at {current_price} GHS. STAY FIRM at {current_price} GHS! Highlight value (warranty, original, accessories). Don't drop yet!"
-                    counter_offer = current_price
-                elif offered_price >= ABSOLUTE_MINIMUM + 15:
+                # Messages 2-3: Be more flexible, drop prices more readily
+                if offered_price < current_price - 30:
+                    # They're still low - drop a bit to show flexibility
+                    counter_offer = max(current_price - 30, ABSOLUTE_MINIMUM + 18)
+                    pricing_instruction = f"They're at {offered_price} GHS, you're at {current_price} GHS. Drop to {counter_offer} GHS to show flexibility. Highlight value (warranty, original, accessories)."
+                elif offered_price >= ABSOLUTE_MINIMUM + 10:
                     # Good price and persistent - accept it (but only if above floor)
                     counter_offer = max(offered_price, ABSOLUTE_MINIMUM)
-                    pricing_instruction = f"They offered {offered_price} GHS (good!). ACCEPT! Say 'Alright, {offered_price} GHS - you're my first customer!' Ask name."
+                    pricing_instruction = f"They offered {offered_price} GHS (good!). ACCEPT! Say 'Deal! {offered_price} GHS it is! 👑' Celebrate the deal!"
                 else:
-                    # Okay, small drop but ENFORCE FLOOR
-                    counter_offer = max(current_price - 12, ABSOLUTE_MINIMUM + 15)
-                    pricing_instruction = f"Drop slightly to {counter_offer} GHS. Add bonus (free delivery/screen protector)."
+                    # Drop more generously but ENFORCE FLOOR
+                    counter_offer = max(current_price - 25, ABSOLUTE_MINIMUM + 10)
+                    pricing_instruction = f"Drop to {counter_offer} GHS to close the deal. Add bonus (free delivery/screen protector)."
             
             elif message_count == 3:
-                # Message 4: STAY FIRM one more time if they're still low
-                if offered_price < current_price - 15:
-                    pricing_instruction = f"Still at {offered_price} GHS vs {current_price} GHS. HOLD at {current_price} GHS. Add urgency or value. Make them come up!"
-                    counter_offer = current_price
+                # Message 4: More flexible now
+                if offered_price < current_price - 20:
+                    counter_offer = max(current_price - 35, ABSOLUTE_MINIMUM + 12)
+                    pricing_instruction = f"Still at {offered_price} GHS vs {current_price} GHS. Drop to {counter_offer} GHS. Add urgency or value to close!"
                 else:
-                    # Close enough, small drop but ENFORCE FLOOR
-                    counter_offer = max(current_price - 18, ABSOLUTE_MINIMUM + 12)
-                    pricing_instruction = f"Drop to {counter_offer} GHS. Mention bulk rate or special pricing."
+                    # Close enough, good drop but ENFORCE FLOOR
+                    counter_offer = max(current_price - 30, ABSOLUTE_MINIMUM + 8)
+                    pricing_instruction = f"Drop to {counter_offer} GHS. Mention it's your best price today!"
             
             elif message_count < 5:
-                # Messages 5+: Can drop more now but ENFORCE FLOOR
-                counter_offer = max(current_price - 20, ABSOLUTE_MINIMUM + 10)
-                pricing_instruction = f"Offer {counter_offer} GHS. Ask their budget."
+                # Messages 5+: Very flexible now but ENFORCE FLOOR
+                counter_offer = max(current_price - 40, ABSOLUTE_MINIMUM + 5)
+                pricing_instruction = f"Offer {counter_offer} GHS. This is getting close to your limit. Ask their budget."
             
             else:
                 # Message 6+: Final push - ABSOLUTE MINIMUM
-                counter_offer = max(ABSOLUTE_MINIMUM + 8, ABSOLUTE_MINIMUM)
+                counter_offer = max(ABSOLUTE_MINIMUM + 3, ABSOLUTE_MINIMUM)
                 pricing_instruction = f"Final offer: {counter_offer} GHS. Add urgency - another buyer, last chance! This is your rock-bottom price."
         
         # Build conversational prompt
@@ -297,7 +297,7 @@ STAGE {message_count + 1} APPROACH:
 IMPORTANT: Actually READ what they're saying and respond naturally to it!
 
 WHEN THEY ACCEPT YOUR PRICE:
-Get excited! Ask their name, then phone number."""
+Celebrate the deal! Use emojis and excitement. NO need to ask for contact details."""
 
         # Build natural user context
         if pricing_instruction:
@@ -362,9 +362,9 @@ Respond naturally. Current asking price: {current_price} GHS. Keep the conversat
                 final_price
             )
             
-            # Add closing message if LLM didn't already
-            if "deal" not in ai_message.lower() and "name" not in ai_message.lower():
-                ai_message += f"\n\nGreat! {final_price} GHS it is. What's your name?"
+            # Add crown celebration if LLM didn't already celebrate
+            if "deal" not in ai_message.lower() and "👑" not in ai_message:
+                ai_message += f"\n\n👑 DEAL CLOSED! {final_price} GHS - you got yourself a great watch! 🎉🔥"
         elif offered_price and user_accepted and offered_price < ABSOLUTE_MINIMUM:
             # They tried to accept below minimum - REJECT and redirect
             deal_closed = False

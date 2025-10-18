@@ -543,10 +543,10 @@ async def chat(message: ChatMessage):
         ).first()
         
         if not session:
-            # Generate random minimum price between 350-400 for this session
+            # Generate random minimum price between 350-390 for this session
             import random
             import string
-            random_minimum = random.randint(350, 400)
+            random_minimum = random.randint(350, 390)
             
             # Generate unique share code for this challenge participant
             share_code = 'NEGO' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
