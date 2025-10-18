@@ -140,6 +140,13 @@ Examples:
         offered_price = llm_intent.get("offered_price") or self.extract_price_from_message(user_message)
         user_accepted_llm = llm_intent.get("accepted_deal", False)
         
+        # Check if user is asking for an offer from us
+        asking_for_offer = any(phrase in user_message.lower() for phrase in [
+            "give me an offer", "what's your offer", "your offer", "best price", 
+            "your best price", "what can you do", "make me an offer", "give me a price",
+            "what's your price", "whats your price", "your price"
+        ])
+        
         # CRITICAL: If they said "okay/fine X" where X is a DIFFERENT price than current,
         # it's a COUNTER-OFFER, not acceptance!
         user_accepted = False
@@ -167,7 +174,27 @@ Examples:
         counter_offer = current_price
         pricing_instruction = ""
         
-        if offered_price:
+        # Handle when they ASK for an offer from us
+        if asking_for_offer and not offered_price:
+            # Calculate strategic offer based on conversation stage
+            if message_count == 0:
+                # First time asking - drop small amount
+                counter_offer = max(current_price - 20, ABSOLUTE_MINIMUM + 30)
+                pricing_instruction = f"They're asking for YOUR offer. Give them {counter_offer} GHS. Make it sound like a special deal just for them. Add some urgency or value."
+            elif message_count < 3:
+                # Early stage - be strategic
+                counter_offer = max(current_price - 30, ABSOLUTE_MINIMUM + 20)
+                pricing_instruction = f"They want your best offer. Counter with {counter_offer} GHS. Mention it's a limited-time deal or add a bonus (free delivery/warranty extension)."
+            elif message_count < 5:
+                # Mid stage - getting more flexible
+                counter_offer = max(current_price - 40, ABSOLUTE_MINIMUM + 15)
+                pricing_instruction = f"They're asking for your offer. Give {counter_offer} GHS as your 'final' offer. Make it compelling - mention another buyer or time sensitivity."
+            else:
+                # Late stage - best offer
+                counter_offer = max(ABSOLUTE_MINIMUM + 10, ABSOLUTE_MINIMUM)
+                pricing_instruction = f"Give your rock-bottom offer: {counter_offer} GHS. This is your absolute final price. Make it clear this is the best you can do."
+        
+        elif offered_price:
             # Calculate gap first - needed for all logic below
             gap = current_price - offered_price
             
