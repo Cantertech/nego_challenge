@@ -168,6 +168,9 @@ Examples:
         pricing_instruction = ""
         
         if offered_price:
+            # Calculate gap first - needed for all logic below
+            gap = current_price - offered_price
+            
             # ENFORCEMENT: Reject anything below ABSOLUTE_MINIMUM
             if offered_price < ABSOLUTE_MINIMUM:
                 # Below 350 - HARD REJECTION, make them come up significantly
